@@ -27,7 +27,8 @@ class ImageWorker {
     );
 
     thumbnail.ensureThumbnail(source_image, null, 90, function (err, filename) {
-      console.log(`${filename} thumb created!`);
+      console.log(err);
+	    console.log(`${filename} thumb created!`);
     });
   }
 

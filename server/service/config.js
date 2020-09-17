@@ -8,5 +8,7 @@ nconf
         "uri": "mongodb://localhost/real_poster"
     }
   });
-
+//real_poster
+// use [database];
+// db.dropDatabase();
 export { nconf };

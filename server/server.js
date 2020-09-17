@@ -12,6 +12,22 @@ const fetchData = new FetchData();
 
 const app = express();
 
+var crypto = require('crypto');
+const multer = require('multer');
+
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, __dirname + '/upload/')
+  },
+  filename: function (req, file, cb) {
+    var ext = require('path').extname(file.originalname);
+    ext = ext.length > 1 ? ext : "." + require('mime').extension(file.mimetype);
+    cb(null, (req.params.id + ext));
+  }
+})
+
+var upload = multer({ storage: storage })
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -23,18 +39,16 @@ app.get('/', function (req, res) {
   res.end('Serve application.');
 });
 
-
 /**
  * Upload source (original) image to server.
  * @param {String}   - URL Pattern
  * @param {Function} - middleware function for request processing.
  * @return {JSONP Object} - return JSONP response with status, code and Array of posts.
  */
-app.post('/api/v1/post/:id/upload', async function (req, res) {
+app.post('/api/v1/post/:id/upload', upload.any(), async function (req, res, next) {
   const response = await fetchData.uploadImage(req.params.id, req);
-  res.jsonp(response);
-});
-
+  res.jsonp();
+})
 
 /**
  * Download source (original) image from server.
@@ -56,8 +70,6 @@ app.get('/api/v1/post/:id/upload_thumbs', function (req, res) {
   res.download(__dirname + '/upload_thumbs/' + req.params.id + '-x90.jpeg');
 });
 
-
-
 /**
  * Add new user to Database.
  * @param {String}   - URL Pattern
@@ -68,7 +80,6 @@ app.post('/api/v1/post', async function(req, res) {
   const response = await fetchData.addPost(req.body);
   res.jsonp(response);
 });
-
 
 /**
  * Get all posts from Database.
@@ -85,8 +96,6 @@ app.get('/api/v1/post', async function(req, res) {
   console.log(response);
   res.jsonp(newresp);
 });
-
-
 
 /**
  * Get one Post from Database by Id.
@@ -130,7 +139,6 @@ app.delete('/api/v1/post/:id', async function (req, res) {
 app.get('*', function (req, res) {
   res.end('404.');
 });
-
 
 /**
  * Start Listen on Port. Gets settings from Config.js

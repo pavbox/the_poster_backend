@@ -11,8 +11,6 @@ import { PostModel } from './Post';
 import createStatus from './../utils/status';
 import ImageWorker from './../utils/ImageWorker';
 
-
-
 class FetchData {
   constructor() {
     this.uploadImage = this.uploadImage.bind(this);
@@ -36,49 +34,9 @@ class FetchData {
    * @param {Object} requestEvent - request Event with user data
    * @return {undefined} - break function
    */
-  uploadImage(id, requestEvent) {
-    let body = '', header = '';
-    let content_type = requestEvent.headers['content-type'];
-    let boundary = content_type.split('; ')[1].split('=')[1];
-    let content_length = parseInt(requestEvent.headers['content-length']);
-    let headerFlag = true;
-    let filename = 'unknown_uploaded';
-    let filenameRegexp = /filename="(.*)"/m;
-
-    requestEvent.on('data', (raw) => {
-      let idx_i = 0;
-
-      while (idx_i < raw.length)
-        if (headerFlag) {
-          let chars = raw.slice(idx_i, idx_i+4).toString();
-          if (chars === '\r\n\r\n') {
-
-            headerFlag = false;
-            header = raw.slice(0, idx_i + 4).toString();
-
-            let result = filenameRegexp.exec(header);
-            if (result[1]) filename = result[1];
-            idx_i += 4;
-          } else {
-            idx_i += 1;
-          }
-        } else {
-          // parsing body include footer
-          body += raw.toString('binary', idx_i, raw.length);
-          idx_i = raw.length;
-        }
-    });
-
-    requestEvent.on('end', async () => {
-      // removing footer '\r\n'--boundary--\r\n' = (boundary.length + 8)
-      body = body.slice(0, body.length - (boundary.length))
-      await fs.writeFile(this._rootdir + '/upload/' + filename, body, 'binary');
-      await this.imageWorker.createThumbFromSource(filename);
-      return;
-    });
-  }
-
-
+   async uploadImage(id, request) {
+     await this.imageWorker.createThumbFromSource(request.files[0].filename);
+   }
 
   /**
    * Save new post to Database.
